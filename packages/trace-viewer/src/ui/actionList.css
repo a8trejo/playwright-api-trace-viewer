@@ -1,5 +1,6 @@
 /*
   Copyright (c) Microsoft Corporation.
+  Modifications Copyright (c) 2026 Roo. See FORK.md and NOTICE.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -129,4 +130,131 @@
   flex: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* Tree rows inherit white-space: nowrap; allow wrapped assertion text when expanded. */
+.tree-view-entry:has(.action-assert-expanded-row) {
+  white-space: normal;
+  align-items: flex-start;
+  line-height: normal;
+  height: auto;
+  min-height: 28px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.action-assert-row {
+  flex: auto;
+  min-width: 0;
+}
+
+.action-assert-header {
+  align-items: center;
+  min-width: 0;
+}
+
+.action-assert-expand-icon {
+  flex: none;
+  margin-left: 4px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.action-assert-expand-icon:hover {
+  opacity: 1;
+}
+
+.action-assert-badge {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  color: #fff;
+  background: #3fb950;
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  line-height: 16px;
+}
+
+.action-assert-badge.failed {
+  background: #f85149;
+}
+
+.action-log-badge {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  color: #fff;
+  background: #388bfd;
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  line-height: 16px;
+}
+
+.action-assert-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 12px;
+  min-width: 0;
+  flex: auto;
+}
+
+.action-assert-label.expandable {
+  cursor: pointer;
+}
+
+.action-assert-label.expandable:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.action-assert-label.expanded-preview {
+  opacity: 0.65;
+}
+
+.action-assert-full {
+  margin-top: 2px;
+  padding: 2px 0 2px 0;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.action-assert-full.failed {
+  color: var(--vscode-errorForeground);
+}
+
+.action-assert-label.failed {
+  color: var(--vscode-errorForeground);
+}
+
+.action-duration.failed {
+  color: var(--vscode-errorForeground);
+}
+
+.action-assert-error-icon {
+  color: var(--vscode-errorForeground);
+  margin-left: 4px;
+}
+
+.action-assertion-error {
+  margin: 2px 0 4px 0;
+  padding-left: 2px;
+  color: var(--vscode-errorForeground);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
