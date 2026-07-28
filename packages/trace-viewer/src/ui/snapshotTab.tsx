@@ -35,6 +35,8 @@ import { parseAriaSnapshot } from '@isomorphic/ariaSnapshot';
 import yaml from 'yaml';
 import { PlaybackButtons } from './playbackControl';
 import type { PlaybackState } from './playbackControl';
+import type { ActionTraceEventInContext } from '@isomorphic/trace/traceModel';
+import { ApiCallViewport, shouldShowApiCallViewport } from './apiCallDetails';
 
 export type HighlightedElement = {
   locator?: string,
@@ -51,8 +53,15 @@ export const SnapshotTabsView: React.FunctionComponent<{
   setIsInspecting: (isInspecting: boolean) => void,
   highlightedElement: HighlightedElement,
   setHighlightedElement: (element: HighlightedElement) => void,
-  playback: PlaybackState
-}> = ({ action, model, sdkLanguage, testIdAttributeName, isInspecting, setIsInspecting, highlightedElement, setHighlightedElement, playback }) => {
+  playback: PlaybackState,
+  allActions?: ActionTraceEventInContext[],
+  autoShowApiDetails?: boolean,
+  setAutoShowApiDetails?: (value: boolean) => void,
+  showAllApiCalls?: boolean,
+  setShowAllApiCalls?: (value: boolean) => void,
+  expandedApiCalls?: Set<string>,
+  collapsedApiCalls?: Set<string>,
+}> = ({ action, model, sdkLanguage, testIdAttributeName, isInspecting, setIsInspecting, highlightedElement, setHighlightedElement, playback, allActions, autoShowApiDetails, setAutoShowApiDetails, showAllApiCalls, setShowAllApiCalls, expandedApiCalls, collapsedApiCalls }) => {
   const [snapshotTab, setSnapshotTab] = React.useState<'action'|'before'|'after'>('action');
 
   const [shouldPopulateCanvasFromScreenshot] = useSetting('shouldPopulateCanvasFromScreenshot', false);
@@ -66,6 +75,7 @@ export const SnapshotTabsView: React.FunctionComponent<{
   }, [snapshots, snapshotTab, shouldPopulateCanvasFromScreenshot, model]);
 
   const snapshotUrls = React.useMemo((): SnapshotUrls | undefined => snapshotInfoUrl !== undefined ? { snapshotInfoUrl, snapshotUrl, popoutUrl } : undefined, [snapshotInfoUrl, snapshotUrl, popoutUrl]);
+  const showApiViewport = shouldShowApiCallViewport(!!autoShowApiDetails, !!showAllApiCalls, action, allActions ?? [], expandedApiCalls, collapsedApiCalls);
 
   return <div className='snapshot-tab vbox'>
     <Toolbar>
@@ -82,6 +92,28 @@ export const SnapshotTabsView: React.FunctionComponent<{
         })}
       </div>
       <div style={{ flex: 'auto' }}></div>
+      <ToolbarButton
+        icon='json'
+        title={showAllApiCalls ? 'Show snapshot instead of all API calls' : 'Show all API calls in viewport'}
+        toggled={!!showAllApiCalls}
+        onClick={() => {
+          const next = !showAllApiCalls;
+          setShowAllApiCalls?.(next);
+          if (next)
+            setAutoShowApiDetails?.(false);
+        }}
+      />
+      <ToolbarButton
+        icon='globe'
+        title={autoShowApiDetails ? 'Stop auto-showing API details for selected step' : 'Auto-show API details for selected step'}
+        toggled={!!autoShowApiDetails}
+        onClick={() => {
+          const next = !autoShowApiDetails;
+          setAutoShowApiDetails?.(next);
+          if (next)
+            setShowAllApiCalls?.(false);
+        }}
+      />
       <PlaybackButtons playback={playback} />
       <ToolbarButton icon='link-external' title='Open snapshot in a new tab' disabled={!snapshotUrls?.popoutUrl} onClick={() => {
         const win = window.open(snapshotUrls?.popoutUrl || '', '_blank');
@@ -91,7 +123,12 @@ export const SnapshotTabsView: React.FunctionComponent<{
         });
       }} />
     </Toolbar>
-    <SnapshotView
+    {showApiViewport ? <ApiCallViewport
+      action={action}
+      model={model}
+      allActions={allActions ?? []}
+      showAllApiCalls={!!showAllApiCalls}
+    /> : <SnapshotView
       snapshotUrls={snapshotUrls}
       sdkLanguage={sdkLanguage}
       testIdAttributeName={testIdAttributeName}
@@ -99,7 +136,7 @@ export const SnapshotTabsView: React.FunctionComponent<{
       setIsInspecting={setIsInspecting}
       highlightedElement={highlightedElement}
       setHighlightedElement={setHighlightedElement}
-    />
+    />}
   </div>;
 };
 

@@ -112,6 +112,22 @@ test('should open trace viewer on specific host', async ({ showTraceViewer }, te
   await expect(traceViewer.page).toHaveURL(/127.0.0.1/);
 });
 
+test('should show API request & response in action list', async ({ runAndTrace, context, server }) => {
+  const traceViewer = await runAndTrace(async () => {
+    await context.request.get(server.PREFIX + '/empty.html');
+  });
+
+  const apiAction = traceViewer.actionsTree.getByRole('treeitem').filter({ hasText: /GET.*empty\.html/ }).first();
+  await expect(apiAction).toBeVisible();
+
+  const toggle = apiAction.locator('.action-api-details-toggle');
+  await expect(toggle).toBeVisible();
+  await expect(traceViewer.page.locator('.api-call-details-viewport')).toHaveCount(0);
+  await toggle.click();
+  await expect(apiAction.locator('.action-api-details-panel .api-call-details')).toBeVisible();
+  await expect(traceViewer.page.locator('.api-call-details-viewport .api-call-details')).toBeVisible();
+});
+
 test('should show tracing.group in the action list with location', async ({ runAndTrace, page, context }) => {
   test.info().annotations.push({ type: 'issue', description: 'https://github.com/microsoft/playwright/issues/36483' });
   test.info().annotations.push({ type: 'issue', description: 'https://github.com/microsoft/playwright/issues/39302' });
@@ -190,6 +206,34 @@ test('should open simple trace viewer', async ({ showTraceViewer }) => {
     /Hover/,
     /Close page/,
   ]);
+});
+
+test('should render assertion badge in action list', async ({ page, showTraceViewer }, testInfo) => {
+  const tracing = (testInfo as any)._tracing;
+  await tracing.startIfNeeded('on');
+  await test.step('assert page has content', async () => {
+    await page.setContent('<div>assert content</div>');
+  });
+  await tracing.didFinishTestFunctionAndAfterEachHooks();
+  await tracing.stopIfNeeded();
+
+  const traceViewer = await showTraceViewer(testInfo.outputPath('trace.zip'));
+  await expect(traceViewer.actionsTree.getByRole('treeitem').filter({ hasText: 'page has content' })).toBeVisible();
+  await expect(traceViewer.page.locator('.action-assert-badge', { hasText: 'assert' }).first()).toBeVisible();
+});
+
+test('should render log badge in action list', async ({ page, showTraceViewer }, testInfo) => {
+  const tracing = (testInfo as any)._tracing;
+  await tracing.startIfNeeded('on');
+  await test.step('log hello from test', async () => {
+    await page.setContent('<div>hello</div>');
+  });
+  await tracing.didFinishTestFunctionAndAfterEachHooks();
+  await tracing.stopIfNeeded();
+
+  const traceViewer = await showTraceViewer(testInfo.outputPath('trace.zip'));
+  await expect(traceViewer.actionsTree.getByRole('treeitem').filter({ hasText: 'hello from test' })).toBeVisible();
+  await expect(traceViewer.page.locator('.action-log-badge', { hasText: 'log' }).first()).toBeVisible();
 });
 
 test('should filter actions by text', async ({ showTraceViewer }) => {

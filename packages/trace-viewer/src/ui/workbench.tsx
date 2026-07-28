@@ -79,6 +79,10 @@ const PartitionedWorkbench: React.FunctionComponent<WorkbenchProps & { partition
   const [selectedPropertiesTab, setSelectedPropertiesTab] = useSetting<string>('propertiesTab', showSourcesFirst ? 'source' : 'call');
   const [sidebarLocation, setSidebarLocation] = useSetting<'bottom' | 'right'>('propertiesSidebarLocation', 'bottom');
   const [actionsFilter] = useSetting<ActionGroup[]>('actionsFilter', []);
+  const [autoShowApiDetails, setAutoShowApiDetails] = useSetting<boolean>('traceViewerAutoShowApiDetails', false);
+  const [showAllApiCalls, setShowAllApiCalls] = useSetting<boolean>('traceViewerShowAllApiCalls', false);
+  const [expandedApiCalls, setExpandedApiCalls] = React.useState<Set<string>>(() => new Set());
+  const [collapsedApiCalls, setCollapsedApiCalls] = React.useState<Set<string>>(() => new Set());
 
   // Per-model settings, should be primitive non-retaining types.
   // These will be turned into per-model state in the following patches.
@@ -350,6 +354,12 @@ const PartitionedWorkbench: React.FunctionComponent<WorkbenchProps & { partition
         revealConsole={() => selectPropertiesTab('console')}
         isLive={isLive}
         actionFilterText={actionFilterText}
+        model={model}
+        autoShowApiDetails={autoShowApiDetails}
+        expandedApiCalls={expandedApiCalls}
+        setExpandedApiCalls={setExpandedApiCalls}
+        collapsedApiCalls={collapsedApiCalls}
+        setCollapsedApiCalls={setCollapsedApiCalls}
       />
     </div>
   };
@@ -389,7 +399,15 @@ const PartitionedWorkbench: React.FunctionComponent<WorkbenchProps & { partition
           setIsInspecting={setIsInspecting}
           highlightedElement={highlightedElement}
           setHighlightedElement={elementPicked}
-          playback={playback} />}
+          playback={playback}
+          allActions={actions}
+          autoShowApiDetails={autoShowApiDetails}
+          setAutoShowApiDetails={setAutoShowApiDetails}
+          showAllApiCalls={showAllApiCalls}
+          setShowAllApiCalls={setShowAllApiCalls}
+          expandedApiCalls={expandedApiCalls}
+          collapsedApiCalls={collapsedApiCalls}
+        />}
         sidebar={
           <TabbedPane
             tabs={[actionsTab, metadataTab]}
